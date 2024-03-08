@@ -137,9 +137,7 @@ pub struct User {
     /// Account that can transfer/send the token
     pub user: Addr,
     /// When the Approval expires (maybe Expiration::never)
-    /// Read details: https://docs.rs/cw-utils/1.0.3/src/cw_utils/expiration.rs.html#38-46
-    /// Timestamp: https://docs.rs/cosmwasm-std/1.5.3/src/cosmwasm_std/timestamp.rs.html#37-39
-    pub expires: Expiration, //u64, Expiration, 
+    pub expires: Expiration, //u64, Expiration,
 }
 //Expiration::Never {}
 impl User {

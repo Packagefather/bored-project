@@ -1,5 +1,6 @@
 [workspace]
-members = ["packages/*", "contracts/*"]
+#members = ["packages/*", "contracts/*"]
+members = ["packages/*", "contracts/cw721-base", "contracts/cw2981-royalties"]
 
 [workspace.package]
 version       = "0.18.0"
@@ -25,6 +26,7 @@ cw-utils        = "^1.0"
 schemars        = "^0.8"
 serde           = { version = "1.0.152", default-features = false, features = ["derive"] }
 thiserror       = "^1.0"
+tokio           = { version = "1", features = ["full"] }
 
 [profile.release.package.cw721-base]
 codegen-units = 1

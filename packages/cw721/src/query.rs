@@ -94,13 +94,19 @@ pub struct Approval {
 #[cw_serde]
 pub struct ApprovalResponse {
     pub approval: Approval,
-}
+} 
 
 #[cw_serde]
 pub struct ApprovalsResponse {
     pub approvals: Vec<Approval>,
 }
-
+#[cw_serde]
+pub struct UserOfResponse {
+    /// user of the token
+    pub user: String,
+    /// represents a point in time when some event happens, in this case, user seizes to be user
+    pub expires: Expiration,
+}
 #[cw_serde]
 pub struct OperatorResponse {
     pub approval: Approval,
@@ -138,6 +144,8 @@ pub struct AllNftInfoResponse<T> {
     pub access: OwnerOfResponse,
     /// Data on the token itself,
     pub info: NftInfoResponse<T>,
+    /// Who is the current user
+    pub user: UserOfResponse,
 }
 
 #[cw_serde]

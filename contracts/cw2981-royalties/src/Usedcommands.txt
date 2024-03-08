@@ -1,0 +1,22 @@
+seid tx wasm store $CONTRACT_WASM_BINARY -y --from=$ACCOUNT_ADDRESS --chain-id=$CHAIN_ID --node $RPC_ENDPOINT_TESTNET --gas=4000000 --fees=100000usei --broadcast-mode=block
+
+CODE : 6737
+
+seid tx wasm instantiate 6737 $INSTANTIATE --chain-id=$CHAIN_ID --from $ACCOUNT_NAME --gas=4000000 --fees=1000000usei --label="TestnetLocks" --broadcast-mode=block --note="This is our solid-locker" --node $RPC_ENDPOINT
+
+seid tx wasm instantiate 6737 '{
+        name: "Happy People",
+        symbol: "HAPPY",
+        minter: "sei1k72638hv0nznj293hj58s6l7t72f6ulc5v6kuq", 
+        withdraw_address: "sei1k72638hv0nznj293hj58s6l7t72f6ulc5v6kuq",
+    }' --chain-id=$CHAIN_ID --no-admin --from $ACCOUNT_ADDRESS --gas=4000000 --fees=1000000usei --label="Happy People" --broadcast-mode=block --note="claims" --node $RPC_ENDPOINT_TESTNET
+
+
+    {
+        name: "Happy People",
+        symbol: "HAPPY",
+        minter: "sei1k72638hv0nznj293hj58s6l7t72f6ulc5v6kuq", 
+        withdraw_address: "sei1k72638hv0nznj293hj58s6l7t72f6ulc5v6kuq",
+    }
+
+    sei1k72638hv0nznj293hj58s6l7t72f6ulc5v6kuq

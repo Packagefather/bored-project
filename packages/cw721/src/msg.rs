@@ -13,6 +13,12 @@ pub enum Cw721ExecuteMsg {
         token_id: String,
         msg: Binary,
     },
+    /// Sets a user for a particular token id and the expiration 
+    SetUser {
+        token_id: String,
+        user: String,
+        expires: Option<Expiration>,
+    },
     /// Allows operator to transfer / send the token from the owner's account.
     /// If expiration is set, then this allowance has a time/height limit
     Approve {

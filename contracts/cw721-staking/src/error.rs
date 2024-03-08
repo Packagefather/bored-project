@@ -19,15 +19,15 @@ pub enum ContractError {
     #[error("token_id already claimed")]
     Claimed {},
 
-    #[error("Cannot set approval that is already expired")]
-    Expired {},
+    #[error("The token_id is already staked in this collection")]
+    AlreadyStakedTokenIDInCollection {},
 
-    #[error("Cannot set user that is already expired")]
-    ExpiredUser {},
+    #[error("Staking is not allowed at the moment")]
+    StakingNotAllowed {},
 
-    #[error("Approval not found for: {spender}")]
-    ApprovalNotFound { spender: String },
+    #[error("Invalid number of days")]
+    InvalidDaysNumber {},
 
-    #[error("No withdraw address set")]
-    NoWithdrawAddress {},
+    #[error("The collection is not supported")]
+    InvalidCollection {},
 }

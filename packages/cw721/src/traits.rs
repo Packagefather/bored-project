@@ -3,7 +3,7 @@ use serde::Serialize;
 
 use crate::{
     AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, NftInfoResponse,
-    NumTokensResponse, OperatorResponse, OperatorsResponse, OwnerOfResponse, TokensResponse,
+    NumTokensResponse, OperatorResponse, OperatorsResponse, OwnerOfResponse, TokensResponse, UserOfResponse,
 };
 use cosmwasm_std::{Binary, CustomMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw_utils::Expiration;
@@ -40,6 +40,16 @@ where
         token_id: String,
         msg: Binary,
     ) -> Result<Response<C>, Self::Err>;
+
+    fn set_user(
+        &self,
+        deps: DepsMut,
+        env: Env,
+        info: MessageInfo,
+        user: String,
+        token_id: String,
+        expires: Option<Expiration>,
+    ) -> Result<Response<C>, Self::Err>; 
 
     fn approve(
         &self,
@@ -106,6 +116,13 @@ where
         token_id: String,
         include_expired: bool,
     ) -> StdResult<OwnerOfResponse>;
+
+     fn user_of(
+        &self,
+        deps: Deps,
+        env: Env,
+        token_id: String,
+    ) -> StdResult<UserOfResponse>;
 
     fn operator(
         &self,

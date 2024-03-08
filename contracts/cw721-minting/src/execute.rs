@@ -274,10 +274,9 @@ where
         Ok(Response::new()
             .add_attribute("action", "set user")
             .add_attribute("owner", info.sender.to_string())
-            .add_attribute("token_id", token_id)
             .add_attribute("user", user)
-            .add_attribute("expires", expires.expect("REASON").to_string())
-            )
+            .add_attribute("token_id", token_id)
+            .add_attribute("expires", expires.expect("REASON").to_string()))
     }
 
     fn approve(
@@ -472,17 +471,14 @@ where
             return Err(ContractError::ExistingUserNotExpired {});
         }
         */
-        //token.user = User::default(); //Default::default(); User::default()
-        //We need to reset it fisrt to empty 
-        //println!("Resetted User from old state:  {:?}", token.user);
+        token.user = User::default(); //Default::default(); User::default()
+        println!("{:?}", token.user);
 
         // only difference between approve and revoke
-        if add { //we are using this same function for remove user, thats why we have this 'add' which if tru means setUser, if false mean removeUser
+        if add {
             // reject expired data as invalid
             let expires = expires.unwrap_or_default();
-            println!("PASSED TIMESTAMP:  {:?}", expires);
             if expires.is_expired(&env.block) {
-                println!("is expired ???:  {:?} and block time is: {:?}", expires.is_expired(&env.block), &env.block.time);
                 return Err(ContractError::ExpiredUser {});
             }
             

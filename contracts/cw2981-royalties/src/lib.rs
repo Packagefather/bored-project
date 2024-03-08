@@ -4,11 +4,16 @@ pub mod query;
 
 pub use query::{check_royalties, query_royalties_info};
 
+use cw_multi_test::{App, Contract, ContractWrapper, Executor};
+
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{to_json_binary, Empty};
+use cosmwasm_std::{to_json_binary, Empty, Timestamp};
+use tokio::time::{sleep, Duration};
+
 use cw721_base::Cw721Contract;
 pub use cw721_base::{InstantiateMsg, MinterResponse};
-
+pub use cw721::{Expiration, UserOfResponse};
+//pub use cw721::Expiration::AtTime;
 use crate::error::ContractError;
 use crate::msg::Cw2981QueryMsg;
 
@@ -100,7 +105,7 @@ pub mod entry {
             .map_err(Into::into)
     }
 
-    #[entry_point]
+    #[entry_point] 
     pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         match msg {
             QueryMsg::Extension { msg } => match msg {
@@ -126,6 +131,8 @@ mod tests {
     use cw721::Cw721Query;
 
     const CREATOR: &str = "creator";
+    const BADACTOR: &str = "badactor";
+    const JOHN: &str = "john";
 
     #[test]
     fn use_metadata_extension() {
@@ -142,7 +149,7 @@ mod tests {
         entry::instantiate(deps.as_mut(), mock_env(), info.clone(), init_msg).unwrap();
 
         let token_id = "Enterprise";
-        let token_uri = Some("https://starships.example.com/Starship/Enterprise.json".into());
+        let token_uri = Some("https://fuchsia-vague-hookworm-215.mypinata.cloud/ipfs/Qmatfw5QbRWNyUyWEtn6y3QizS8sQYogo7RPd341tv6Mdp".into());
         let extension = Some(Metadata {
             description: Some("Spaceship with Warp Drive".into()),
             name: Some("Starship USS Enterprise".to_string()),
@@ -314,5 +321,117 @@ mod tests {
         )
         .unwrap();
         assert_eq!(res, voyager_expected);
+    }
+
+    #[test]
+    fn test_setting_tokenid_user() {
+
+        let mut deps = mock_dependencies();
+        let contract = Cw2981Contract::default();
+        let mut env = mock_env();
+
+        let info = mock_info(CREATOR, &[]);
+        let badactor = mock_info(BADACTOR, &[]);
+        let john = mock_info(JOHN, &[]);
+
+
+        let init_msg = InstantiateMsg {
+            name: "SpaceShips".to_string(),
+            symbol: "SPACE".to_string(),
+            minter: None,
+            withdraw_address: None,
+        };
+        entry::instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg).unwrap();
+
+        let token_id = "1";
+        let token_uri = Some("https://fuchsia-vague-hookworm-215.mypinata.cloud/ipfs/Qmatfw5QbRWNyUyWEtn6y3QizS8sQYogo7RPd341tv6Mdp".into());
+        let extension = Some(Metadata {
+            description: Some("Spaceship with Warp Drive".into()),
+            name: Some("Starship USS Enterprise".to_string()),
+            ..Metadata::default()
+        });
+        let exec_msg = ExecuteMsg::Mint {
+            token_id: token_id.to_string(),
+            owner: JOHN.clone().to_string(),
+            token_uri: token_uri.clone(),
+            extension: extension.clone(),
+        };
+        entry::execute(deps.as_mut(), env.clone(), info.clone(), exec_msg).unwrap();
+
+        let res = contract.nft_info(deps.as_ref(), token_id.into()).unwrap();
+        println!("The nft info: {:?}", res);
+        assert_eq!(res.token_uri, token_uri);
+        assert_eq!(res.extension, extension);
+
+        //Time is read here in nanoseconds not seconds
+        //Timestamp: A point in time in nanosecond precision.
+        //More info: https://docs.rs/cosmwasm-std/1.5.3/src/cosmwasm_std/timestamp.rs.html#37-39
+        
+        let expiresTime = env.block.time.plus_seconds(60); //1571797419 
+        println!("Current Block time one: {:?}", env.block.time); 
+        println!("Set expiry time: {:?}", expiresTime); 
+
+        let start = tokio::time::Instant::now();
+        println!("Current Block time Tokio: {:?}", start); 
+
+        {/*
+            //This is definition of plus_seconds
+            pub const fn plus_seconds(&self, addition: u64) -> Timestamp {
+            self.plus_nanos(addition * 1_000_000_000)
+        */}
+
+        //This creates a timestamp from nanosecond value given, Result => Timestamp(Uint64(15717976619))
+        //let ts = Timestamp::from_nanos(15717976619); 
+        //println!("Convert from nanos: {:?}", ts);
+
+        let exec_msg = ExecuteMsg::SetUser{
+            token_id: token_id.clone().to_string(),
+            user: "testuser".to_string(), 
+            expires: Some(Expiration::AtTime(expiresTime))
+        }; 
+    
+        let res = entry::execute(deps.as_mut(), env.clone(), john.clone(), exec_msg).unwrap();
+        println!("set user function: {:?}", res); 
+
+       
+
+        let res = contract.user_of(deps.as_ref(), env.clone(), token_id.to_string()).unwrap();
+        //To convert the timestamp from nanoseconds to seconds, you would divide by 1,000,000,000
+        println!("User of an NFT: {:?}", res.expires.to_string()); //User of an NFT: "expiration time: 1571797479.879305533"
+        assert_eq!(res.expires.is_expired(&env.block), false);
+
+        // let nanoseconds = match &res.expires {
+        //     Expiration::AtTime(timestamp) => timestamp.seconds(),
+        //     _ => 0,  // Handle other cases if needed
+        // };
+        // println!("Nanoseconds: {}", nanoseconds);
+
+        /*
+        let mut router: App = App::new(|_, _, _| {});
+            router.update_block(|current_blockinfo| {
+            current_blockinfo.height += 1;
+            current_blockinfo.time = current_blockinfo.time.plus_seconds(2592000); //30 days
+        }); */
+
+        //Fast forward by 30days
+        //env.block.time += Timestamp::plus_seconds(2592000);
+        env.block.time = env.block.time.plus_seconds(2592000);
+
+        println!("Current Block time two: {:?}", env.block.time); 
+         // also check the longhand way
+        let query_msg = QueryMsg::UserOf{
+            token_id: token_id.clone().to_string()
+        };
+        let query_res: UserOfResponse =
+            from_json(entry::query(deps.as_ref(), env.clone(), query_msg).unwrap()).unwrap();
+        //assert_eq!(query_res, expected);
+        println!("Result of last query: {:?}", query_res);
+        //println!("Result of last query: {:?}", query_res.expires.is_expired(&env.block));
+        assert_eq!(query_res.expires.is_expired(&env.block), true)
+
+        //1571797419.879305533
+        //1574389419.879305533
+
+       
     }
 }
